@@ -26,27 +26,55 @@ export function PeriodicTable() {
       const containerWidth = entries[0].contentRect.width;
       const targetWidth = 1000;
       
+      let gHeight = 680;
       if (gridRef.current) {
-        setGridHeight(gridRef.current.offsetHeight);
+        gHeight = gridRef.current.offsetHeight;
+        setGridHeight(gHeight);
       }
       
+      let computedScale = 1;
       if (containerWidth < targetWidth) {
-        setScale(containerWidth / targetWidth);
-      } else {
-        setScale(1);
+        computedScale = containerWidth / targetWidth;
       }
+
+      // Height constraint (especially for landscape view on mobile)
+      // Ensure the grid fits within the visible vertical window (subtracting ~200px for headers/footers)
+      const availableHeight = window.innerHeight - 200;
+      if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
+        const heightScale = availableHeight / gHeight;
+        computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
+      }
+      
+      setScale(computedScale);
     });
 
     observer.observe(wrapperRef.current);
     
-    const timeout = setTimeout(() => {
-      if (gridRef.current) {
-        setGridHeight(gridRef.current.offsetHeight);
+    // Also listen to window resize to catch height changes explicitly since wrapperRef width might not change on vertical resize
+    const handleResize = () => {
+      if (wrapperRef.current) {
+        // Force a re-evaluation of the resize logic by accessing the dimensions
+        const rect = wrapperRef.current.getBoundingClientRect();
+        // The observer loop will naturally catch width changes, but we explicitly trigger scale updates here for height
+        let gHeight = gridRef.current?.offsetHeight || 680;
+        let computedScale = 1;
+        if (rect.width < 1000) computedScale = rect.width / 1000;
+        const availableHeight = window.innerHeight - 200;
+        if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
+           const heightScale = availableHeight / gHeight;
+           computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
+        }
+        setScale(computedScale);
       }
-    }, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    const timeout = setTimeout(handleResize, 100);
 
     return () => {
       observer.disconnect();
+      window.removeEventListener('resize', handleResize);
       clearTimeout(timeout);
     };
   }, []);
