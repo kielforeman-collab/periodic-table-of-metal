@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  font-size: 125%;
+}
+
 @layer base {
   :root {
     --background: 0 0% 5%;
@@ -77,7 +81,6 @@
 }
 
 .metal-cell:hover {
-  transform: scale(1.15);
   z-index: 100;
   box-shadow: 0 0 15px var(--category-color, #666), 0 0 30px var(--category-color, #666);
   background-color: rgba(0, 0, 0, 0.95);

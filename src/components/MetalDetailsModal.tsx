@@ -38,7 +38,7 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
               onClick={onClose}
               className="p-2 rounded-full bg-black/40 text-gray-400 hover:text-white transition-colors"
             >
-              <X size={20} />
+              <X size={25} />
             </button>
           </div>
           
@@ -62,11 +62,11 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
         <div className="pt-16 px-8 pb-8 space-y-6">
           <div className="flex flex-wrap gap-6 text-sm text-gray-400 border-b border-gray-800 pb-4">
             <div className="flex items-center gap-2">
-              <Globe size={16} className="text-gray-500" />
+              <Globe size={20} className="text-gray-500" />
               <span>{band.origin}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Calendar size={16} className="text-gray-500" />
+              <Calendar size={20} className="text-gray-500" />
               <span>Formed in {band.year}</span>
             </div>
           </div>
@@ -80,10 +80,10 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
               <div className="space-y-4 pt-2">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-widest flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Music size={14} />
+                    <Music size={18} />
                     Essential Elements (Top Albums)
                   </div>
-                  {loading && <Loader2 size={14} className="animate-spin text-blue-500" />}
+                  {loading && <Loader2 size={18} className="animate-spin text-blue-500" />}
                 </h3>
                 
                 <div className="grid grid-cols-3 gap-4">
@@ -104,12 +104,12 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                          <span className="text-[10px] text-white font-medium leading-tight line-clamp-2">
+                          <span className="text-[12.5px] text-white font-medium leading-tight line-clamp-2">
                             {album.title}
                           </span>
                         </div>
                       </div>
-                      <p className="text-[10px] text-gray-500 text-center truncate group-hover:text-gray-300 transition-colors">
+                      <p className="text-[12.5px] text-gray-500 text-center truncate group-hover:text-gray-300 transition-colors">
                         {album.title}
                       </p>
                     </div>

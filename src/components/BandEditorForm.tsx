@@ -62,7 +62,7 @@ export function BandEditorForm({ band, onSave, onDelete, onCancel }: BandEditorF
           <div className="flex justify-between items-center border-b border-gray-800 pb-4">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <span 
-                className="w-8 h-8 flex items-center justify-center border-2 rounded text-sm"
+                className="w-10 h-10 flex items-center justify-center border-2 rounded text-sm"
                 style={{ borderColor: categoryColor, color: categoryColor }}
               >
                 {formData.symbol || '?'}
@@ -70,7 +70,7 @@ export function BandEditorForm({ band, onSave, onDelete, onCancel }: BandEditorF
               {band?.symbol ? 'Edit Element' : 'Add New Element'}
             </h2>
             <button onClick={onCancel} className="text-gray-500 hover:text-white transition-colors">
-              <X size={24} />
+              <X size={30} />
             </button>
           </div>
 
@@ -191,7 +191,7 @@ export function BandEditorForm({ band, onSave, onDelete, onCancel }: BandEditorF
                   <span key={i} className="flex items-center gap-1 px-2 py-1 rounded bg-white/5 border border-white/10 text-xs text-gray-300">
                     {album.title}
                     <button type="button" onClick={() => removeAlbum(i)} className="hover:text-red-500">
-                      <X size={12} />
+                      <X size={15} />
                     </button>
                   </span>
                 ))}
@@ -204,7 +204,7 @@ export function BandEditorForm({ band, onSave, onDelete, onCancel }: BandEditorF
                 className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded font-bold transition-all hover:scale-[1.02]"
                 style={{ backgroundColor: categoryColor, color: '#fff' }}
               >
-                <Save size={18} />
+                <Save size={23} />
                 Save Element
               </button>
               
@@ -215,7 +215,7 @@ export function BandEditorForm({ band, onSave, onDelete, onCancel }: BandEditorF
                   className="w-12 flex items-center justify-center rounded border border-red-900/50 text-red-500 hover:bg-red-500/10 transition-colors"
                   title="Remove Element"
                 >
-                  <Trash2 size={20} />
+                  <Trash2 size={25} />
                 </button>
               )}
             </div>

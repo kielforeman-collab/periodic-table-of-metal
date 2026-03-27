@@ -11,6 +11,7 @@ export function PeriodicTable() {
   const [selectedBand, setSelectedBand] = useState<Band | null>(null);
   const [editingBand, setEditingBand] = useState<Band | Partial<Band> | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [hoveredPos, setHoveredPos] = useState<{ row: number; col: number } | null>(null);
   
   let animationIndex = 0;
 
@@ -65,7 +66,7 @@ export function PeriodicTable() {
             onClick={() => setIsEditMode(!isEditMode)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isEditMode ? 'bg-blue-600 border-blue-400 text-white' : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'}`}
           >
-            {isEditMode ? <Check size={16} /> : <Edit3 size={16} />}
+            {isEditMode ? <Check size={20} /> : <Edit3 size={20} />}
             {isEditMode ? 'Finish Editing' : 'Edit Mode'}
           </button>
           {isEditMode && (
@@ -73,7 +74,7 @@ export function PeriodicTable() {
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-600/20 border border-green-500/50 text-green-400 hover:text-green-300 transition-all"
             >
-              <Download size={16} />
+              <Download size={20} />
               Export Data
             </button>
           )}
@@ -109,7 +110,7 @@ export function PeriodicTable() {
                   className="group flex items-center justify-center border border-dashed border-gray-800 hover:border-blue-500/50 transition-colors rounded"
                   style={{ gridRow: row, gridColumn: col, minHeight: '60px' }}
                 >
-                  <Plus size={16} className="text-gray-700 group-hover:text-blue-500 transition-colors" />
+                  <Plus size={20} className="text-gray-700 group-hover:text-blue-500 transition-colors" />
                 </button>
               );
             }
@@ -126,6 +127,17 @@ export function PeriodicTable() {
               band={band} 
               animationDelay={isEditMode ? 0 : animationIndex}
               onClick={isEditMode ? setEditingBand : setSelectedBand}
+              hoveredPos={hoveredPos}
+              onHoverChange={(pos) => {
+                if (pos) {
+                  setHoveredPos(pos);
+                } else {
+                  // Only clear if we were the ones who set it
+                  setHoveredPos(prev => 
+                    prev?.row === band.row && prev?.col === band.col ? null : prev
+                  );
+                }
+              }}
             />
           );
         })}
