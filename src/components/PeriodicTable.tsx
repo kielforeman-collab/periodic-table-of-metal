@@ -119,29 +119,6 @@ export function PeriodicTable() {
   // Helper to find band at position
   const getBandAt = (r: number, c: number) => localBands.find(b => b.row === r && b.col === c);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    
-    if (element) {
-      const cell = element.closest('.metal-cell');
-      if (cell) {
-        const row = parseInt(cell.getAttribute('data-row') || '0', 10);
-        const col = parseInt(cell.getAttribute('data-col') || '0', 10);
-        if (row && col && (!hoveredPos || hoveredPos.row !== row || hoveredPos.col !== col)) {
-          setHoveredPos({ row, col });
-        }
-      } else {
-        setHoveredPos(null);
-      }
-    }
-  }, [hoveredPos]);
-
-  const handleTouchEnd = useCallback(() => {
-    setHoveredPos(null);
-  }, []);
-
   return (
     <div className="w-full h-full overflow-auto p-4 bg-[#0D0D0D] min-h-screen">
       {/* Header & Controls */}
@@ -193,11 +170,7 @@ export function PeriodicTable() {
               width: scale < 1 ? '1000px' : '100%',
               transform: scale < 1 ? `scale(${scale})` : 'none',
               transformOrigin: 'top left',
-              touchAction: 'pan-y', // Allow vertical scroll, but prevent mobile browser horizontal swiping while dragging
             }}
-            onTouchMove={handleTouchMove}
-            onTouchStart={handleTouchMove} // Trigger hover immediately on touch start
-            onTouchEnd={handleTouchEnd}
           >
         {/* Category Labels (Fixed Positions) */}
         <CategoryLabel name={categories.classic.name} color={categories.classic.color} row={1} col={1} colSpan={2} />

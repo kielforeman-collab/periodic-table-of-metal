@@ -1,6 +1,6 @@
 import type { Band } from '@/data/bands';
 import { categories } from '@/data/bands';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface MetalCellProps {
   band: Band;
@@ -13,6 +13,7 @@ interface MetalCellProps {
 
 export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, hoveredPos, onHoverChange }: MetalCellProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const hoverStartTime = useRef(0);
   const categoryColor = categories[band.category].color;
   
   const staggerClass = `stagger-${Math.min(animationDelay + 1, 10)}`;
@@ -44,6 +45,7 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
   }
 
   const handleMouseEnter = () => {
+    hoverStartTime.current = Date.now();
     setIsHovered(true);
     onHoverChange?.({ row: band.row, col: band.col });
   };
@@ -51,6 +53,18 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
   const handleMouseLeave = () => {
     setIsHovered(false);
     onHoverChange?.(null);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // On mobile screens, iOS fires mouseenter milliseconds before click on the first tap.
+    // We absorb this first tap so the user can see the magnification before opening the modal.
+    // A second tap won't fire mouseenter, so the time difference will be > 250ms, allowing the click.
+    if (baseScale < 1 && Date.now() - hoverStartTime.current < 250) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    onClick?.(band);
   };
 
   return (
@@ -76,7 +90,7 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
         } as React.CSSProperties}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        onClick={() => onClick?.(band)}
+        onClick={handleClick}
       >
         <div className="flex flex-col h-full min-h-[50px]">
           {/* Symbol */}
