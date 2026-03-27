@@ -44,8 +44,8 @@ export function PeriodicTable() {
       }
 
       // Height constraint (especially for landscape view on mobile)
-      // Ensure the grid fits within the visible vertical window (subtracting ~200px for headers/footers)
-      const availableHeight = window.innerHeight - 200;
+      // Ensure the grid fits within the visible vertical window (subtracting ~120px for scaled-down headers/footers on mobile)
+      const availableHeight = window.innerHeight - (containerWidth < 768 ? 120 : 200);
       if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
         const heightScale = availableHeight / gHeight;
         computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
@@ -65,7 +65,7 @@ export function PeriodicTable() {
         let gHeight = gridRef.current?.offsetHeight || 680;
         let computedScale = 1;
         if (rect.width < 1000) computedScale = rect.width / 1000;
-        const availableHeight = window.innerHeight - 200;
+        const availableHeight = window.innerHeight - (rect.width < 768 ? 120 : 200);
         if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
            const heightScale = availableHeight / gHeight;
            computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
@@ -260,11 +260,11 @@ export function PeriodicTable() {
       </div>
 
       {/* Legend */}
-      <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm">
+      <div className="mt-4 md:mt-8 flex flex-wrap justify-center gap-2 md:gap-6 text-[10px] md:text-sm">
         {Object.entries(categories).map(([key, { name, color }]) => (
-          <div key={key} className="flex items-center gap-2 font-medium">
+          <div key={key} className="flex items-center gap-1 md:gap-2 font-medium">
             <div 
-              className="w-5 h-5 border shadow-lg"
+              className="w-3 h-3 md:w-5 md:h-5 border shadow-lg"
               style={{ borderColor: color, backgroundColor: `${color}20`, boxShadow: `0 0 10px ${color}30` }}
             />
             <span style={{ color }}>{name}</span>
@@ -273,7 +273,7 @@ export function PeriodicTable() {
       </div>
 
       {/* Footer */}
-      <div className="mt-6 text-center text-xs text-gray-600">
+      <div className="mt-3 md:mt-6 text-center text-[9px] md:text-xs text-gray-600">
         <p>
           {isEditMode 
             ? "EDITOR ACTIVE: Click any cell to edit or trash icon to add new ones. Changes are temporary until exported." 
