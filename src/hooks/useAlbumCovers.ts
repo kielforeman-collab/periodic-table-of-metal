@@ -84,7 +84,7 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
             return { ...album, coverUrl: highResCover };
           }
 
-          // Fallback: text search with artist and title filtering
+          // Fallback 1: iTunes text search with artist and title filtering
           try {
             const query = encodeURIComponent(`${bandName} ${album.title}`);
             const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=album&limit=5`);
@@ -105,8 +105,30 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
               }
             }
           } catch (error) {
-            console.error(`Error fetching cover for ${album.title}:`, error);
+            console.error(`Error fetching iTunes cover for ${album.title}:`, error);
           }
+
+          // Fallback 2: MusicBrainz + Cover Art Archive (Metal fallback)
+          try {
+            const mbQuery = encodeURIComponent(`release:"${album.title}" AND artist:"${bandName}"`);
+            const mbRes = await fetch(`https://musicbrainz.org/ws/2/release?query=${mbQuery}&fmt=json`);
+            const mbData = await mbRes.json();
+            
+            // Find a release that has front cover art metadata or just try the first one
+            const mbMatch = mbData.releases?.find((r: any) => 
+              r.title?.toLowerCase().includes(normalizedTitle) || 
+              normalizedTitle.includes(r.title?.toLowerCase() || '')
+            ) || mbData.releases?.[0];
+
+            if (mbMatch?.id) {
+              // Standard CAA URL pattern for front cover
+              const caaUrl = `https://coverartarchive.org/release/${mbMatch.id}/front`;
+              return { ...album, coverUrl: caaUrl };
+            }
+          } catch (error) {
+            console.error(`Error fetching MusicBrainz cover for ${album.title}:`, error);
+          }
+
           return album;
         })
       );
