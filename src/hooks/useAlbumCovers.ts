@@ -33,12 +33,24 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
 
           try {
             const query = encodeURIComponent(`${bandName} ${album.title}`);
-            const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=album&limit=1`);
+            const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=album&limit=5`);
             const data = await response.json();
 
             if (data.results && data.results.length > 0) {
-              const highResCover = data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
-              return { ...album, coverUrl: highResCover };
+              // Filter results to match the actual artist (iTunes often returns wrong artists)
+              const normalizedBand = bandName.toLowerCase();
+              const match = data.results.find(
+                (r: any) => r.artistName?.toLowerCase().includes(normalizedBand)
+              ) || data.results.find(
+                (r: any) => r.collectionName?.toLowerCase().includes(album.title.toLowerCase())
+                  && r.primaryGenreName !== 'Dance' && r.primaryGenreName !== 'Pop'
+                  && r.primaryGenreName !== 'Soundtrack'
+              );
+
+              if (match?.artworkUrl100) {
+                const highResCover = match.artworkUrl100.replace('100x100bb', '300x300bb');
+                return { ...album, coverUrl: highResCover };
+              }
             }
           } catch (error) {
             console.error(`Error fetching cover for ${album.title}:`, error);
