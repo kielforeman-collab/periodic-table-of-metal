@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Roboto+Condensed:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 90%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 90%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 0 0% 90%;
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 90%;
+    --radius: 0.25rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Roboto Condensed', sans-serif;
+    overflow: hidden;
+  }
+}
+
+/* Gothic font for title */
+.font-gothic {
+  font-family: 'UnifrakturMaguntia', cursive;
+}
+
+/* Category Colors */
+.category-classic {
+  --category-color: #B03030;
+}
+
+.category-noble {
+  --category-color: #D4AF37;
+}
+
+.category-alternative {
+  --category-color: #CC5500;
+}
+
+.category-nu {
+  --category-color: #4C9141;
+}
+
+.category-transition {
+  --category-color: #800080;
+}
+
+.category-extreme {
+  --category-color: #1E3F66;
+}
+
+/* Cell hover effect */
+.metal-cell {
+  transition: all 0.2s ease-out;
+  border: 1px solid var(--category-color, #333);
+}
+
+.metal-cell:hover {
+  transform: scale(1.15);
+  z-index: 100;
+  box-shadow: 0 0 15px var(--category-color, #666), 0 0 30px var(--category-color, #666);
+  background-color: rgba(0, 0, 0, 0.95);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0D0D0D;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Grid container */
+.periodic-grid {
+  display: grid;
+  grid-template-columns: repeat(18, minmax(0, 1fr));
+  gap: 2px;
+}
+
+/* Animation for entrance */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-entrance {
+  animation: fadeInScale 0.5s ease-out forwards;
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.01s; }
+.stagger-2 { animation-delay: 0.02s; }
+.stagger-3 { animation-delay: 0.03s; }
+.stagger-4 { animation-delay: 0.04s; }
+.stagger-5 { animation-delay: 0.05s; }
+.stagger-6 { animation-delay: 0.06s; }
+.stagger-7 { animation-delay: 0.07s; }
+.stagger-8 { animation-delay: 0.08s; }
+.stagger-9 { animation-delay: 0.09s; }
+.stagger-10 { animation-delay: 0.10s; }
