@@ -4,8 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Periodic Table of Metal</title>
-    <script type="module" crossorigin src="./assets/index-Oh2M6jFq.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BNZqa4dO.css">
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme');
+        if (theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-B5Dz3nMh.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D3r-uXWJ.css">
   </head>
   <body>
     <div id="root"></div>
