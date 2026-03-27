@@ -44,8 +44,8 @@ export function PeriodicTable() {
       }
 
       // Height constraint (especially for landscape view on mobile)
-      // Ensure the grid fits within the visible vertical window (subtracting ~120px for scaled-down headers/footers on mobile)
-      const availableHeight = window.innerHeight - (containerWidth < 768 ? 120 : 200);
+      // Ensure the grid fits within the visible vertical window (subtracting ~180px for headers/footers on mobile)
+      const availableHeight = window.innerHeight - (containerWidth < 768 ? 180 : 200);
       if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
         const heightScale = availableHeight / gHeight;
         computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
@@ -65,7 +65,7 @@ export function PeriodicTable() {
         let gHeight = gridRef.current?.offsetHeight || 680;
         let computedScale = 1;
         if (rect.width < 1000) computedScale = rect.width / 1000;
-        const availableHeight = window.innerHeight - (rect.width < 768 ? 120 : 200);
+        const availableHeight = window.innerHeight - (rect.width < 768 ? 180 : 200);
         if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
            const heightScale = availableHeight / gHeight;
            computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
@@ -126,7 +126,7 @@ export function PeriodicTable() {
   const getBandAt = (r: number, c: number) => localBands.find(b => b.row === r && b.col === c);
 
   return (
-    <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-4 bg-[#0D0D0D] min-h-screen">
+    <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-4 pb-12 md:pb-8 bg-[#0D0D0D] min-h-screen">
       {/* Header & Controls */}
       <div className="flex flex-row justify-between items-center mb-4 md:mb-8 px-2 md:px-4">
         <h1 className="font-gothic text-2xl sm:text-3xl md:text-5xl text-gray-200 truncate pr-4" style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
