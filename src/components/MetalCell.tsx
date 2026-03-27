@@ -1,6 +1,6 @@
+import { memo, useRef, useState } from 'react';
 import type { Band } from '@/data/bands';
 import { categories } from '@/data/bands';
-import { useState, useRef } from 'react';
 
 interface MetalCellProps {
   band: Band;
@@ -8,15 +8,35 @@ interface MetalCellProps {
   animationDelay?: number;
   onClick?: (band: Band) => void;
   hoveredPos?: { row: number; col: number } | null;
-  onHoverChange?: (pos: { row: number; col: number } | null) => void;
+  onHoverChange?: (band: Band, pos: { row: number; col: number } | null) => void;
 }
 
-export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, hoveredPos, onHoverChange }: MetalCellProps) {
+// Edge-aware transform-origin lookup (computed once per cell, stable across renders)
+function getTransformOrigin(col: number, row: number): string {
+  let originX = 'center';
+  let originY = 'center';
+  if (col === 1) originX = 'left';
+  else if (col === 18) originX = 'right';
+  else if (col <= 3) originX = '30%';
+  else if (col >= 16) originX = '70%';
+  if (row === 1) originY = 'top';
+  else if (row >= 9) originY = 'bottom';
+  return `${originX} ${originY}`;
+}
+
+export const MetalCell = memo(function MetalCell({
+  band,
+  baseScale = 1,
+  animationDelay = 0,
+  onClick,
+  hoveredPos,
+  onHoverChange,
+}: MetalCellProps) {
   const [isHovered, setIsHovered] = useState(false);
   const hoverStartTime = useRef(0);
   const categoryColor = categories[band.category].color;
-  
   const staggerClass = `stagger-${Math.min(animationDelay + 1, 10)}`;
+  const transformOrigin = getTransformOrigin(band.col, band.row);
 
   // Calculate magnification scale based on distance to hovered cell
   let dynamicScale = 1.0;
@@ -24,40 +44,34 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
   let glowOpacity = 0;
 
   if (hoveredPos) {
-    const dRow = Math.abs(band.row - hoveredPos.row);
-    const dCol = Math.abs(band.col - hoveredPos.col);
-    const distance = Math.sqrt(dRow * dRow + dCol * dCol);
+    const dRow = band.row - hoveredPos.row;
+    const dCol = band.col - hoveredPos.col;
+    const distSq = dRow * dRow + dCol * dCol;
 
-    // Continuous Gaussian-like scaling function for a smooth "Apple Dock" feel
-    // Increase magnification intensity slightly on small screens so they remain visible
+    // Gaussian-like scaling for smooth "Apple Dock" feel
     const targetVisualScale = Math.max(1.6, 1.2 / baseScale);
-    const maxExpansion = targetVisualScale - 1; 
+    const maxExpansion = targetVisualScale - 1;
     const sigma = 0.8;
-    const expansion = maxExpansion * Math.exp(-(distance * distance) / (2 * sigma * sigma));
-    
+    const expansion = maxExpansion * Math.exp(-distSq / (2 * sigma * sigma));
+
     dynamicScale = 1 + expansion;
-    
-    // Smooth glow based on proximity
-    glowOpacity = Math.exp(-(distance * distance) / (1.5));
-    
-    // Manage stacking: closer items should be on top
+    glowOpacity = Math.exp(-distSq / 1.5);
     zIndex = Math.round(10 + (dynamicScale - 1) * 200);
   }
 
   const handleMouseEnter = () => {
     hoverStartTime.current = Date.now();
     setIsHovered(true);
-    onHoverChange?.({ row: band.row, col: band.col });
+    onHoverChange?.(band, { row: band.row, col: band.col });
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    onHoverChange?.(null);
+    onHoverChange?.(band, null);
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    // On mobile screens, iOS fires mouseenter milliseconds before click on the first tap.
-    // We absorb this first tap so the user can see the magnification before opening the modal.
+    // On mobile: absorb first tap so user sees magnification before modal opens
     if (baseScale < 1 && Date.now() - hoverStartTime.current < 250) {
       e.preventDefault();
       e.stopPropagation();
@@ -66,17 +80,6 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
     onClick?.(band);
   };
 
-  // Dynamically adjust transform-origin to prevent edge cells from zooming off-screen
-  let originX = 'center';
-  let originY = 'center';
-  if (band.col === 1) originX = 'left';
-  else if (band.col === 18) originX = 'right';
-  else if (band.col <= 3) originX = '30%';
-  else if (band.col >= 16) originX = '70%';
-
-  if (band.row === 1) originY = 'top';
-  else if (band.row >= 9) originY = 'bottom';
-
   return (
     <div
       className={`animate-entrance ${staggerClass}`}
@@ -84,7 +87,7 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
         gridColumn: band.col,
         gridRow: band.row,
         animationDelay: `${animationDelay * 0.01}s`,
-        zIndex: zIndex,
+        zIndex,
       }}
     >
       <div
@@ -95,7 +98,7 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
           '--category-color': categoryColor,
           transform: `scale(${dynamicScale})`,
           transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease-out, background-color 0.2s ease-out',
-          transformOrigin: `${originX} ${originY}`,
+          transformOrigin,
         } as React.CSSProperties}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -104,19 +107,19 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
         <div className="flex flex-col h-full min-h-[100px] md:min-h-[50px] justify-between">
           <div>
             {/* Symbol */}
-            <span 
+            <span
               className="text-base md:text-sm font-bold leading-tight"
               style={{ color: categoryColor }}
             >
               {band.symbol}
             </span>
-            
+
             {/* Name */}
             <span className="text-[11px] md:text-[10px] text-gray-700 dark:text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-normal block">
               {band.name}
             </span>
           </div>
-          
+
           {/* Origin & Year */}
           <div className={`mt-auto transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-60'}`}>
             <span className="text-[8px] md:text-[7.5px] text-gray-500 md:leading-none block truncate">
@@ -127,9 +130,9 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
             </span>
           </div>
         </div>
-        
+
         {/* Hover glow effect overlay */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-200"
           style={{
             boxShadow: `inset 0 0 15px ${categoryColor}${Math.round(glowOpacity * 60).toString(16).padStart(2, '0')}`,
@@ -139,22 +142,9 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
       </div>
     </div>
   );
-}
+});
 
-// Empty cell for spacing
-export function EmptyCell({ row, col }: { row: number; col: number }) {
-  return (
-    <div 
-      className="bg-transparent"
-      style={{
-        gridColumn: col,
-        gridRow: row,
-      }}
-    />
-  );
-}
-
-// Category label
+// Category label (memoized — props never change after mount)
 interface CategoryLabelProps {
   name: string;
   color: string;
@@ -163,12 +153,12 @@ interface CategoryLabelProps {
   colSpan?: number;
 }
 
-export function CategoryLabel({ name, color, row, col, colSpan = 1 }: CategoryLabelProps) {
+export const CategoryLabel = memo(function CategoryLabel({ name, color, row, col, colSpan = 1 }: CategoryLabelProps) {
   return (
     <div
       className="text-xs font-bold text-center flex items-center justify-center"
       style={{
-        color: color,
+        color,
         gridColumn: `${col} / span ${colSpan}`,
         gridRow: row,
         textShadow: `0 0 10px ${color}60`,
@@ -177,4 +167,4 @@ export function CategoryLabel({ name, color, row, col, colSpan = 1 }: CategoryLa
       {name}
     </div>
   );
-}
+});

@@ -5,12 +5,23 @@ interface Album {
   coverUrl?: string;
 }
 
+// Module-level cache: prevents re-fetching covers for bands already viewed
+const coverCache = new Map<string, Album[]>();
+
 export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
-  const [albums, setAlbums] = useState<Album[]>(initialAlbums);
-  const [loading, setLoading] = useState(false);
+  const cacheKey = `${bandName}::${initialAlbums.map(a => a.title).join(',')}`;
+  const [albums, setAlbums] = useState<Album[]>(() => coverCache.get(cacheKey) || initialAlbums);
+  const [loading, setLoading] = useState(!coverCache.has(cacheKey));
 
   useEffect(() => {
     if (!bandName || initialAlbums.length === 0) return;
+
+    // Return cached immediately
+    if (coverCache.has(cacheKey)) {
+      setAlbums(coverCache.get(cacheKey)!);
+      setLoading(false);
+      return;
+    }
 
     let isMounted = true;
     setLoading(true);
@@ -26,7 +37,6 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
             const data = await response.json();
 
             if (data.results && data.results.length > 0) {
-              // Get a higher resolution image (100x100 -> 300x300)
               const highResCover = data.results[0].artworkUrl100.replace('100x100bb', '300x300bb');
               return { ...album, coverUrl: highResCover };
             }
@@ -38,6 +48,7 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
       );
 
       if (isMounted) {
+        coverCache.set(cacheKey, updatedAlbums);
         setAlbums(updatedAlbums);
         setLoading(false);
       }
@@ -48,7 +59,7 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
     return () => {
       isMounted = false;
     };
-  }, [bandName, initialAlbums]);
+  }, [bandName, cacheKey]);
 
   return { albums, loading };
 }

@@ -12,23 +12,41 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Band } from '@/data/bands';
 
+// Extracted: single source of truth for responsive scale calculation
+function computeScale(containerWidth: number, gridHeight: number): number {
+  const targetWidth = 1000;
+  let scale = 1;
+  if (containerWidth < targetWidth) {
+    scale = containerWidth / targetWidth;
+  }
+  // Height constraint for mobile landscape / portrait
+  const headerOffset = containerWidth < 768 ? 180 : 200;
+  const availableHeight = window.innerHeight - headerOffset;
+  if (availableHeight > 100 && gridHeight * scale > availableHeight) {
+    const heightScale = availableHeight / gridHeight;
+    scale = Math.min(scale, Math.max(0.2, heightScale));
+  }
+  return scale;
+}
+
 export function PeriodicTable() {
   const [localBands, setLocalBands] = useState<Band[]>(initialBands);
   const [selectedBand, setSelectedBand] = useState<Band | null>(null);
   const [editingBand, setEditingBand] = useState<Band | Partial<Band> | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [hoveredPos, setHoveredPos] = useState<{ row: number; col: number } | null>(null);
-  
+
   // Responsive Scaling state
   const [scale, setScale] = useState(1);
-  const [gridHeight, setGridHeight] = useState(680); // Initial estimate
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => 
+  const [gridHeight, setGridHeight] = useState(680);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() =>
     typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light'
   );
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // Theme persistence
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -39,57 +57,39 @@ export function PeriodicTable() {
     }
   }, [theme]);
 
+  // ESC key to close modals
   useEffect(() => {
-    if (!wrapperRef.current) return;
-    
-    const observer = new ResizeObserver((entries) => {
-      const containerWidth = entries[0].contentRect.width;
-      const targetWidth = 1000;
-      
-      let gHeight = 680;
-      if (gridRef.current) {
-        gHeight = gridRef.current.offsetHeight;
-        setGridHeight(gHeight);
-      }
-      
-      let computedScale = 1;
-      if (containerWidth < targetWidth) {
-        computedScale = containerWidth / targetWidth;
-      }
-
-      // Height constraint (especially for landscape view on mobile)
-      // Ensure the grid fits within the visible vertical window (subtracting ~180px for headers/footers on mobile)
-      const availableHeight = window.innerHeight - (containerWidth < 768 ? 180 : 200);
-      if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
-        const heightScale = availableHeight / gHeight;
-        computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
-      }
-      
-      setScale(computedScale);
-    });
-
-    observer.observe(wrapperRef.current);
-    
-    // Also listen to window resize to catch height changes explicitly since wrapperRef width might not change on vertical resize
-    const handleResize = () => {
-      if (wrapperRef.current) {
-        // Force a re-evaluation of the resize logic by accessing the dimensions
-        const rect = wrapperRef.current.getBoundingClientRect();
-        // The observer loop will naturally catch width changes, but we explicitly trigger scale updates here for height
-        let gHeight = gridRef.current?.offsetHeight || 680;
-        let computedScale = 1;
-        if (rect.width < 1000) computedScale = rect.width / 1000;
-        const availableHeight = window.innerHeight - (rect.width < 768 ? 180 : 200);
-        if (availableHeight > 100 && (gHeight * computedScale > availableHeight)) {
-           const heightScale = availableHeight / gHeight;
-           computedScale = Math.min(computedScale, Math.max(0.2, heightScale));
-        }
-        setScale(computedScale);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedBand(null);
+        setEditingBand(null);
       }
     };
-    
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  // Responsive scaling via ResizeObserver + window resize
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+
+    const updateScale = (containerWidth: number) => {
+      const gHeight = gridRef.current?.offsetHeight || 680;
+      setGridHeight(gHeight);
+      setScale(computeScale(containerWidth, gHeight));
+    };
+
+    const observer = new ResizeObserver((entries) => {
+      updateScale(entries[0].contentRect.width);
+    });
+    observer.observe(wrapperRef.current);
+
+    const handleResize = () => {
+      if (wrapperRef.current) {
+        updateScale(wrapperRef.current.getBoundingClientRect().width);
+      }
+    };
     window.addEventListener('resize', handleResize);
-    
     const timeout = setTimeout(handleResize, 100);
 
     return () => {
@@ -99,12 +99,19 @@ export function PeriodicTable() {
     };
   }, []);
 
-  let animationIndex = 0;
+  // Stable hover handler — compatible with React.memo on MetalCell
+  const handleHoverChange = useCallback((band: Band, pos: { row: number; col: number } | null) => {
+    if (pos) {
+      setHoveredPos(pos);
+    } else {
+      setHoveredPos(prev =>
+        prev?.row === band.row && prev?.col === band.col ? null : prev
+      );
+    }
+  }, []);
 
   const handleSaveBand = useCallback((updatedBand: Band) => {
     setLocalBands(prev => {
-      // If it exists but is a different band (repositioning), we should handle that
-      // For now, let's just filter out the old version of the band by unique symbol/name or position
       const filtered = prev.filter(b => b.name !== updatedBand.name && (b.row !== updatedBand.row || b.col !== updatedBand.col));
       return [...filtered, updatedBand];
     });
@@ -118,7 +125,7 @@ export function PeriodicTable() {
     setSelectedBand(null);
   }, []);
 
-  const handleExport = () => {
+  const handleExport = useCallback(() => {
     const dataStr = JSON.stringify(localBands, null, 2);
     const blob = new Blob([`export const bands: Band[] = ${dataStr};`], { type: 'text/javascript' });
     const url = URL.createObjectURL(blob);
@@ -128,16 +135,20 @@ export function PeriodicTable() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
-    // Also log to console for the agent to read if needed
+    URL.revokeObjectURL(url); // Fix: prevent Blob URL memory leak
+
     console.log("BAND_DATA_EXPORT_START");
     console.log(dataStr);
     console.log("BAND_DATA_EXPORT_END");
     alert("Data exported! Check console or download for the updated bands.ts content.");
-  };
+  }, [localBands]);
 
-  // Helper to find band at position
-  const getBandAt = (r: number, c: number) => localBands.find(b => b.row === r && b.col === c);
+  const getBandAt = useCallback(
+    (r: number, c: number) => localBands.find(b => b.row === r && b.col === c),
+    [localBands]
+  );
+
+  const handleCellClick = isEditMode ? setEditingBand : setSelectedBand;
 
   return (
     <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-4 pb-12 md:pb-8 bg-gray-50 dark:bg-[#0D0D0D] min-h-screen text-gray-900 dark:text-gray-200 transition-colors duration-300">
@@ -146,7 +157,7 @@ export function PeriodicTable() {
         <h1 className="font-gothic text-2xl sm:text-3xl md:text-5xl truncate pr-4 drop-shadow-sm dark:[text-shadow:0_0_20px_rgba(255,255,255,0.3)]">
           Periodic Table of Metal
         </h1>
-        
+
         {/* Desktop Controls */}
         <div className="hidden md:flex flex-1 justify-end gap-3">
           <button
@@ -156,8 +167,8 @@ export function PeriodicTable() {
           >
             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          
-          <button 
+
+          <button
             onClick={() => setIsEditMode(!isEditMode)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isEditMode ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:bg-black/40 dark:border-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-black/60'}`}
           >
@@ -165,7 +176,7 @@ export function PeriodicTable() {
             {isEditMode ? 'Finish Editing' : 'Edit Mode'}
           </button>
           {isEditMode && (
-            <button 
+            <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-300 text-green-700 hover:bg-green-200 dark:bg-green-600/20 dark:border-green-500/50 dark:text-green-400 dark:hover:text-green-300 transition-all"
             >
@@ -204,12 +215,12 @@ export function PeriodicTable() {
       </div>
 
       {/* Main Grid Wrapper - Responsive Scaling */}
-      <div 
+      <div
         ref={wrapperRef}
         className="w-full relative flex justify-center mx-auto"
         style={{
           maxWidth: '1400px',
-          height: `${gridHeight * scale}px`, // Reserves dynamic scaled height in document flow
+          height: `${gridHeight * scale}px`,
         }}
       >
         <div
@@ -219,7 +230,7 @@ export function PeriodicTable() {
             position: 'relative',
           }}
         >
-          <div 
+          <div
             ref={gridRef}
             className={`periodic-grid ${scale < 1 ? 'absolute top-0 left-0' : 'w-full relative'}`}
             style={{
@@ -237,7 +248,7 @@ export function PeriodicTable() {
         <CategoryLabel name={categories.extreme.name} color={categories.extreme.color} row={8} col={1} colSpan={18} />
 
         {/* Grid Background/Add Buttons in Edit Mode */}
-        {isEditMode && Array.from({ length: 10 }).map((_, r) => 
+        {isEditMode && Array.from({ length: 10 }).map((_, r) =>
           Array.from({ length: 18 }).map((_, c) => {
             const row = r + 1;
             const col = c + 1;
@@ -257,30 +268,18 @@ export function PeriodicTable() {
           })
         )}
 
-        {/* Render all band cells */}
-        {localBands.map((band, index) => {
-          animationIndex++;
-          return (
-            <MetalCell 
-              key={`${band.symbol}-${index}`} 
-              band={band} 
-              baseScale={scale}
-              animationDelay={isEditMode ? 0 : animationIndex}
-              onClick={isEditMode ? setEditingBand : setSelectedBand}
-              hoveredPos={hoveredPos}
-              onHoverChange={(pos) => {
-                if (pos) {
-                  setHoveredPos(pos);
-                } else {
-                  // Only clear if we were the ones who set it
-                  setHoveredPos(prev => 
-                    prev?.row === band.row && prev?.col === band.col ? null : prev
-                  );
-                }
-              }}
-            />
-          );
-        })}
+        {/* Render all band cells — uses .map index instead of mutable animationIndex */}
+        {localBands.map((band, index) => (
+          <MetalCell
+            key={`${band.symbol}-${band.row}-${band.col}`}
+            band={band}
+            baseScale={scale}
+            animationDelay={isEditMode ? 0 : index + 1}
+            onClick={handleCellClick}
+            hoveredPos={hoveredPos}
+            onHoverChange={handleHoverChange}
+          />
+        ))}
           </div>
         </div>
       </div>
@@ -289,7 +288,7 @@ export function PeriodicTable() {
       <div className="mt-4 md:mt-8 flex flex-wrap justify-center gap-2 md:gap-6 text-[10px] md:text-sm">
         {Object.entries(categories).map(([key, { name, color }]) => (
           <div key={key} className="flex items-center gap-1 md:gap-2 font-medium">
-            <div 
+            <div
               className="w-3 h-3 md:w-5 md:h-5 border shadow-lg"
               style={{ borderColor: color, backgroundColor: `${color}20`, boxShadow: `0 0 10px ${color}30` }}
             />
@@ -301,24 +300,24 @@ export function PeriodicTable() {
       {/* Footer */}
       <div className="mt-3 md:mt-6 text-center text-[9px] md:text-xs text-gray-600">
         <p>
-          {isEditMode 
-            ? "EDITOR ACTIVE: Click any cell to edit or trash icon to add new ones. Changes are temporary until exported." 
+          {isEditMode
+            ? "EDITOR ACTIVE: Click any cell to edit or trash icon to add new ones. Changes are temporary until exported."
             : "Hover over elements for details • Click to explore"}
         </p>
       </div>
 
       {/* Detail Modal */}
       {selectedBand && (
-        <MetalDetailsModal 
-          band={selectedBand} 
-          onClose={() => setSelectedBand(null)} 
+        <MetalDetailsModal
+          band={selectedBand}
+          onClose={() => setSelectedBand(null)}
           onEdit={isEditMode ? setEditingBand : undefined}
         />
       )}
 
       {/* Editor Modal */}
       {editingBand && (
-        <BandEditorForm 
+        <BandEditorForm
           band={editingBand}
           onSave={handleSaveBand}
           onDelete={handleDeleteBand}
