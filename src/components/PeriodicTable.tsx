@@ -3,7 +3,13 @@ import { MetalCell, CategoryLabel } from './MetalCell';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { MetalDetailsModal } from './MetalDetailsModal';
 import { BandEditorForm } from './BandEditorForm';
-import { Plus, Download, Edit3, Check } from 'lucide-react';
+import { Plus, Download, Edit3, Check, Menu } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Band } from '@/data/bands';
 
 export function PeriodicTable() {
@@ -120,14 +126,15 @@ export function PeriodicTable() {
   const getBandAt = (r: number, c: number) => localBands.find(b => b.row === r && b.col === c);
 
   return (
-    <div className="w-full h-full overflow-y-auto overflow-x-hidden p-4 bg-[#0D0D0D] min-h-screen">
+    <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-4 bg-[#0D0D0D] min-h-screen">
       {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 px-4 gap-4">
-        <div className="flex-1" />
-        <h1 className="font-gothic text-4xl md:text-5xl text-gray-200" style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
+      <div className="flex flex-row justify-between items-center mb-4 md:mb-8 px-2 md:px-4">
+        <h1 className="font-gothic text-2xl sm:text-3xl md:text-5xl text-gray-200 truncate pr-4" style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
           Periodic Table of Metal
         </h1>
-        <div className="flex-1 flex justify-end gap-3">
+        
+        {/* Desktop Controls */}
+        <div className="hidden md:flex flex-1 justify-end gap-3">
           <button 
             onClick={() => setIsEditMode(!isEditMode)}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isEditMode ? 'bg-blue-600 border-blue-400 text-white' : 'bg-black/40 border-gray-800 text-gray-400 hover:text-white'}`}
@@ -144,6 +151,29 @@ export function PeriodicTable() {
               Export Data
             </button>
           )}
+        </div>
+
+        {/* Mobile Hamburger Controls */}
+        <div className="md:hidden flex items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-2 rounded-full border border-gray-800 bg-black/40 text-gray-400 hover:text-white focus:outline-none">
+                <Menu size={20} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-[#111] border-gray-800 text-gray-200 text-sm min-w-[160px]">
+              <DropdownMenuItem onClick={() => setIsEditMode(!isEditMode)} className="cursor-pointer">
+                {isEditMode ? <Check className="mr-2 h-4 w-4" /> : <Edit3 className="mr-2 h-4 w-4" />}
+                {isEditMode ? 'Finish Editing' : 'Edit Mode'}
+              </DropdownMenuItem>
+              {isEditMode && (
+                <DropdownMenuItem onClick={handleExport} className="text-green-400 cursor-pointer">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export Data
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
