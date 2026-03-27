@@ -153,64 +153,67 @@ export function PeriodicTable() {
   return (
     <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-4 pb-12 md:pb-8 bg-gray-50 dark:bg-[#0D0D0D] min-h-screen text-gray-900 dark:text-gray-200 transition-colors duration-300">
       {/* Header & Controls */}
-      <div className="flex flex-row justify-between items-center mb-4 md:mb-8 px-2 md:px-4">
-        <h1 className="font-gothic text-2xl sm:text-3xl md:text-5xl truncate pr-4 drop-shadow-sm dark:[text-shadow:0_0_20px_rgba(255,255,255,0.3)]">
+      <div className="relative flex items-center justify-center mb-4 md:mb-8 px-2 md:px-4 min-h-[3rem] md:min-h-[5rem]">
+        <h1 className="font-gothic text-2xl sm:text-3xl md:text-5xl text-center drop-shadow-sm dark:[text-shadow:0_0_20px_rgba(255,255,255,0.3)]">
           Periodic Table of Metal
         </h1>
 
-        {/* Desktop Controls */}
-        <div className="hidden md:flex flex-1 justify-end gap-3">
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="flex items-center justify-center p-2 rounded-full border border-gray-300 bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:border-gray-800 dark:bg-black/40 dark:text-gray-400 dark:hover:text-white dark:hover:bg-black/60 transition-all"
-            title="Toggle Theme"
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-
-          <button
-            onClick={() => setIsEditMode(!isEditMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isEditMode ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:bg-black/40 dark:border-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-black/60'}`}
-          >
-            {isEditMode ? <Check size={20} /> : <Edit3 size={20} />}
-            {isEditMode ? 'Finish Editing' : 'Edit Mode'}
-          </button>
-          {isEditMode && (
+        {/* Controls Container (Desktop & Mobile) */}
+        <div className="absolute right-2 md:right-4 flex items-center gap-3">
+          {/* Desktop Controls */}
+          <div className="hidden md:flex gap-3">
             <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-300 text-green-700 hover:bg-green-200 dark:bg-green-600/20 dark:border-green-500/50 dark:text-green-400 dark:hover:text-green-300 transition-all"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex items-center justify-center p-2 rounded-full border border-gray-300 bg-white text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:border-gray-800 dark:bg-black/40 dark:text-gray-400 dark:hover:text-white dark:hover:bg-black/60 transition-all"
+              title="Toggle Theme"
             >
-              <Download size={20} />
-              Export Data
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-          )}
-        </div>
 
-        {/* Mobile Hamburger Controls */}
-        <div className="md:hidden flex items-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="p-2 rounded-full border border-gray-300 bg-white text-gray-600 hover:text-gray-900 dark:border-gray-800 dark:bg-black/40 dark:text-gray-400 dark:hover:text-white focus:outline-none transition-colors">
-                <Menu size={20} />
+            <button
+              onClick={() => setIsEditMode(!isEditMode)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isEditMode ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white border-gray-300 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:bg-black/40 dark:border-gray-800 dark:text-gray-400 dark:hover:text-white dark:hover:bg-black/60'}`}
+            >
+              {isEditMode ? <Check size={20} /> : <Edit3 size={20} />}
+              {isEditMode ? 'Finish Editing' : 'Edit Mode'}
+            </button>
+            {isEditMode && (
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-300 text-green-700 hover:bg-green-200 dark:bg-green-600/20 dark:border-green-500/50 dark:text-green-400 dark:hover:text-green-300 transition-all"
+              >
+                <Download size={20} />
+                Export Data
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white border-gray-200 text-gray-800 dark:bg-[#111] dark:border-gray-800 dark:text-gray-200 text-sm min-w-[160px]">
-              <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer">
-                {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsEditMode(!isEditMode)} className="cursor-pointer">
-                {isEditMode ? <Check className="mr-2 h-4 w-4" /> : <Edit3 className="mr-2 h-4 w-4" />}
-                {isEditMode ? 'Finish Editing' : 'Edit Mode'}
-              </DropdownMenuItem>
-              {isEditMode && (
-                <DropdownMenuItem onClick={handleExport} className="text-green-700 dark:text-green-400 cursor-pointer">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Data
+            )}
+          </div>
+
+          {/* Mobile Hamburger Controls */}
+          <div className="md:hidden flex items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 rounded-full border border-gray-300 bg-white text-gray-600 hover:text-gray-900 dark:border-gray-800 dark:bg-black/40 dark:text-gray-400 dark:hover:text-white focus:outline-none transition-colors">
+                  <Menu size={20} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-white border-gray-200 text-gray-800 dark:bg-[#111] dark:border-gray-800 dark:text-gray-200 text-sm min-w-[160px]">
+                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="cursor-pointer">
+                  {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem onClick={() => setIsEditMode(!isEditMode)} className="cursor-pointer">
+                  {isEditMode ? <Check className="mr-2 h-4 w-4" /> : <Edit3 className="mr-2 h-4 w-4" />}
+                  {isEditMode ? 'Finish Editing' : 'Edit Mode'}
+                </DropdownMenuItem>
+                {isEditMode && (
+                  <DropdownMenuItem onClick={handleExport} className="text-green-700 dark:text-green-400 cursor-pointer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export Data
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
