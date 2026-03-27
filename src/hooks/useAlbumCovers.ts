@@ -69,17 +69,22 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
 
           // Try discography lookup first (most accurate)
           const normalizedTitle = album.title.toLowerCase();
-          const discoMatch = discography.find(
-            (r: any) => r.collectionName?.toLowerCase() === normalizedTitle
-              || r.collectionName?.toLowerCase().startsWith(normalizedTitle)
-          );
+          const discoMatch = discography.find((r: any) => {
+            const name = r.collectionName?.toLowerCase() || '';
+            // Match exact, or starts with title followed by common suffixes, or title equals name without common suffixes
+            return name === normalizedTitle || 
+                   name.startsWith(`${normalizedTitle} (`) || 
+                   name.startsWith(`${normalizedTitle} -`) ||
+                   name === `${normalizedTitle} (remastered)` ||
+                   normalizedTitle === name.replace(/ \(remasters?ed\)| \(deluxe.*\)| - ep/g, '').trim();
+          });
 
           if (discoMatch?.artworkUrl100) {
             const highResCover = discoMatch.artworkUrl100.replace('100x100bb', '300x300bb');
             return { ...album, coverUrl: highResCover };
           }
 
-          // Fallback: text search with artist filtering
+          // Fallback: text search with artist and title filtering
           try {
             const query = encodeURIComponent(`${bandName} ${album.title}`);
             const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=album&limit=5`);
@@ -87,9 +92,12 @@ export function useAlbumCovers(bandName: string, initialAlbums: Album[] = []) {
 
             if (data.results && data.results.length > 0) {
               const normalizedBand = bandName.toLowerCase();
-              const match = data.results.find(
-                (r: any) => r.artistName?.toLowerCase().includes(normalizedBand)
-              );
+              const match = data.results.find((r: any) => {
+                const rArtist = r.artistName?.toLowerCase() || '';
+                const rAlbum = r.collectionName?.toLowerCase() || '';
+                return rArtist.includes(normalizedBand) && 
+                       (rAlbum.includes(normalizedTitle) || normalizedTitle.includes(rAlbum));
+              });
 
               if (match?.artworkUrl100) {
                 const highResCover = match.artworkUrl100.replace('100x100bb', '300x300bb');
