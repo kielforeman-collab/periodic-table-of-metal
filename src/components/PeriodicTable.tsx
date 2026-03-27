@@ -1,6 +1,6 @@
 import { bands as initialBands, categories } from '@/data/bands';
 import { MetalCell, CategoryLabel } from './MetalCell';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { MetalDetailsModal } from './MetalDetailsModal';
 import { BandEditorForm } from './BandEditorForm';
 import { Plus, Download, Edit3, Check } from 'lucide-react';
@@ -13,6 +13,44 @@ export function PeriodicTable() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [hoveredPos, setHoveredPos] = useState<{ row: number; col: number } | null>(null);
   
+  // Responsive Scaling state
+  const [scale, setScale] = useState(1);
+  const [gridHeight, setGridHeight] = useState(680); // Initial estimate
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!wrapperRef.current) return;
+    
+    const observer = new ResizeObserver((entries) => {
+      const containerWidth = entries[0].contentRect.width;
+      const targetWidth = 1000;
+      
+      if (gridRef.current) {
+        setGridHeight(gridRef.current.offsetHeight);
+      }
+      
+      if (containerWidth < targetWidth) {
+        setScale(containerWidth / targetWidth);
+      } else {
+        setScale(1);
+      }
+    });
+
+    observer.observe(wrapperRef.current);
+    
+    const timeout = setTimeout(() => {
+      if (gridRef.current) {
+        setGridHeight(gridRef.current.offsetHeight);
+      }
+    }, 100);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, []);
+
   let animationIndex = 0;
 
   const handleSaveBand = useCallback((updatedBand: Band) => {
@@ -81,14 +119,31 @@ export function PeriodicTable() {
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* Main Grid Wrapper - Responsive Scaling */}
       <div 
-        className="periodic-grid mx-auto relative"
+        ref={wrapperRef}
+        className="w-full relative flex justify-center mx-auto"
         style={{
           maxWidth: '1400px',
-          minWidth: '1000px', // Slightly wider for add buttons
+          height: `${gridHeight * scale}px`, // Reserves dynamic scaled height in document flow
         }}
       >
+        <div
+          style={{
+            width: scale < 1 ? `${1000 * scale}px` : '100%',
+            height: scale < 1 ? `${gridHeight * scale}px` : 'auto',
+            position: 'relative',
+          }}
+        >
+          <div 
+            ref={gridRef}
+            className={`periodic-grid ${scale < 1 ? 'absolute top-0 left-0' : 'w-full relative'}`}
+            style={{
+              width: scale < 1 ? '1000px' : '100%',
+              transform: scale < 1 ? `scale(${scale})` : 'none',
+              transformOrigin: 'top left',
+            }}
+          >
         {/* Category Labels (Fixed Positions) */}
         <CategoryLabel name={categories.classic.name} color={categories.classic.color} row={1} col={1} colSpan={2} />
         <CategoryLabel name={categories.transition.name} color={categories.transition.color} row={3} col={3} colSpan={10} />
@@ -125,6 +180,7 @@ export function PeriodicTable() {
             <MetalCell 
               key={`${band.symbol}-${index}`} 
               band={band} 
+              baseScale={scale}
               animationDelay={isEditMode ? 0 : animationIndex}
               onClick={isEditMode ? setEditingBand : setSelectedBand}
               hoveredPos={hoveredPos}
@@ -141,6 +197,8 @@ export function PeriodicTable() {
             />
           );
         })}
+          </div>
+        </div>
       </div>
 
       {/* Legend */}

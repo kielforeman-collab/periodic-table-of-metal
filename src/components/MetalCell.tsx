@@ -4,13 +4,14 @@ import { useState } from 'react';
 
 interface MetalCellProps {
   band: Band;
+  baseScale?: number;
   animationDelay?: number;
   onClick?: (band: Band) => void;
   hoveredPos?: { row: number; col: number } | null;
   onHoverChange?: (pos: { row: number; col: number } | null) => void;
 }
 
-export function MetalCell({ band, animationDelay = 0, onClick, hoveredPos, onHoverChange }: MetalCellProps) {
+export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, hoveredPos, onHoverChange }: MetalCellProps) {
   const [isHovered, setIsHovered] = useState(false);
   const categoryColor = categories[band.category].color;
   
@@ -27,8 +28,9 @@ export function MetalCell({ band, animationDelay = 0, onClick, hoveredPos, onHov
     const distance = Math.sqrt(dRow * dRow + dCol * dCol);
 
     // Continuous Gaussian-like scaling function for a smooth "Apple Dock" feel
-    // 1 + max_expansion * e^(-distance^2 / 2*sigma^2)
-    const maxExpansion = 0.6;
+    // Increase magnification intensity slightly on small screens so they remain visible
+    const targetVisualScale = Math.max(1.6, 1.2 / baseScale);
+    const maxExpansion = targetVisualScale - 1; 
     const sigma = 0.8;
     const expansion = maxExpansion * Math.exp(-(distance * distance) / (2 * sigma * sigma));
     
