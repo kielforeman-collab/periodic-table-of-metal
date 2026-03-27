@@ -88,14 +88,13 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
       }}
     >
       <div
-        className="metal-cell relative bg-[#0D0D0D] p-1 cursor-pointer w-full h-full"
+        className="metal-cell relative bg-white dark:bg-[#0D0D0D] p-1 cursor-pointer w-full h-full"
         data-row={band.row}
         data-col={band.col}
         style={{
           '--category-color': categoryColor,
           transform: `scale(${dynamicScale})`,
           transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease-out, background-color 0.2s ease-out',
-          backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.95)' : undefined,
           transformOrigin: `${originX} ${originY}`,
         } as React.CSSProperties}
         onMouseEnter={handleMouseEnter}
@@ -113,7 +112,7 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
             </span>
             
             {/* Name */}
-            <span className="text-[11px] md:text-[10px] text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-normal block">
+            <span className="text-[11px] md:text-[10px] text-gray-700 dark:text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-normal block">
               {band.name}
             </span>
           </div>

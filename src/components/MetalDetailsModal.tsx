@@ -17,7 +17,7 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
       <div 
-        className="relative w-full max-w-2xl bg-[#0D0D0D] border-2 rounded-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300"
+        className="relative w-full max-w-2xl bg-white dark:bg-[#0D0D0D] border-2 rounded-xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300"
         style={{ borderColor: `${color}40` }}
       >
         {/* Header/Banner */}
@@ -29,22 +29,22 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
             {onEdit && (
               <button 
                 onClick={() => onEdit(band)}
-                className="p-2 rounded-full bg-black/40 text-gray-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider px-3"
+                className="p-2 rounded-full bg-white/50 dark:bg-black/40 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors text-xs font-bold uppercase tracking-wider px-3"
               >
                 Edit
               </button>
             )}
             <button 
               onClick={onClose}
-              className="p-2 rounded-full bg-black/40 text-gray-400 hover:text-white transition-colors"
+              className="p-2 rounded-full bg-white/50 dark:bg-black/40 text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <X size={25} />
             </button>
           </div>
           
-          <div className="absolute -bottom-10 left-8 flex items-end gap-6 text-white">
+          <div className="absolute -bottom-10 left-8 flex items-end gap-6 text-gray-900 dark:text-white">
             <div 
-              className="w-24 h-24 flex items-center justify-center text-4xl font-bold border-4 rounded-xl bg-[#0D0D0D]"
+              className="w-24 h-24 flex items-center justify-center text-4xl font-bold border-4 rounded-xl bg-white dark:bg-[#0D0D0D]"
               style={{ borderColor: color, color: color, textShadow: `0 0 10px ${color}40` }}
             >
               {band.symbol}
@@ -60,7 +60,7 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
 
         {/* Content */}
         <div className="pt-16 px-8 pb-8 space-y-6">
-          <div className="flex flex-wrap gap-6 text-sm text-gray-400 border-b border-gray-800 pb-4">
+          <div className="flex flex-wrap gap-6 text-sm text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 pb-4">
             <div className="flex items-center gap-2">
               <Globe size={20} className="text-gray-500" />
               <span>{band.origin}</span>
@@ -72,7 +72,7 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
           </div>
 
           <div className="space-y-6">
-            <p className="text-gray-300 leading-relaxed italic">
+            <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic">
               {band.description || "Experimental metal pioneer with a unique sonic fingerprint in the periodic landscape of heavy music."}
             </p>
 
@@ -89,7 +89,7 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
                 <div className="grid grid-cols-3 gap-4">
                   {albums.map((album, i) => (
                     <div key={i} className="group relative space-y-2">
-                      <div className="aspect-square w-full bg-white/5 border border-white/10 rounded-lg overflow-hidden relative">
+                      <div className="aspect-square w-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg overflow-hidden relative">
                         {album.coverUrl ? (
                           <img 
                             src={album.coverUrl} 
@@ -109,7 +109,7 @@ export function MetalDetailsModal({ band, onClose, onEdit }: MetalDetailsModalPr
                           </span>
                         </div>
                       </div>
-                      <p className="text-[12.5px] text-gray-500 text-center truncate group-hover:text-gray-300 transition-colors">
+                      <p className="text-[12.5px] text-gray-500 text-center truncate group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors">
                         {album.title}
                       </p>
                     </div>
