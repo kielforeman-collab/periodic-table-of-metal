@@ -65,6 +65,8 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
     >
       <div
         className="metal-cell relative bg-[#0D0D0D] p-1 cursor-pointer w-full h-full"
+        data-row={band.row}
+        data-col={band.col}
         style={{
           '--category-color': categoryColor,
           transform: `scale(${dynamicScale})`,
