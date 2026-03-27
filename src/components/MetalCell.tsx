@@ -92,28 +92,28 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
-        <div className="flex flex-col h-full min-h-[140px] md:min-h-[50px] justify-between">
+        <div className="flex flex-col h-full min-h-[100px] md:min-h-[50px] justify-between">
           <div>
             {/* Symbol */}
             <span 
-              className="text-lg md:text-sm font-bold leading-tight"
+              className="text-base md:text-sm font-bold leading-tight"
               style={{ color: categoryColor }}
             >
               {band.symbol}
             </span>
             
             {/* Name */}
-            <span className="text-[12px] md:text-[10px] text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-normal block">
+            <span className="text-[11px] md:text-[10px] text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-normal block">
               {band.name}
             </span>
           </div>
           
           {/* Origin & Year */}
           <div className={`mt-auto transition-opacity duration-200 ${isHovered ? 'opacity-100' : 'opacity-60'}`}>
-            <span className="text-[9px] md:text-[7.5px] text-gray-500 md:leading-none block truncate">
+            <span className="text-[8px] md:text-[7.5px] text-gray-500 md:leading-none block truncate">
               {band.origin}
             </span>
-            <span className="text-[9px] md:text-[7.5px] text-gray-500 md:leading-none block">
+            <span className="text-[8px] md:text-[7.5px] text-gray-500 md:leading-none block">
               {band.year}
             </span>
           </div>
