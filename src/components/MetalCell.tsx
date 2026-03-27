@@ -58,7 +58,6 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
   const handleClick = (e: React.MouseEvent) => {
     // On mobile screens, iOS fires mouseenter milliseconds before click on the first tap.
     // We absorb this first tap so the user can see the magnification before opening the modal.
-    // A second tap won't fire mouseenter, so the time difference will be > 250ms, allowing the click.
     if (baseScale < 1 && Date.now() - hoverStartTime.current < 250) {
       e.preventDefault();
       e.stopPropagation();
@@ -66,6 +65,17 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
     }
     onClick?.(band);
   };
+
+  // Dynamically adjust transform-origin to prevent edge cells from zooming off-screen
+  let originX = 'center';
+  let originY = 'center';
+  if (band.col === 1) originX = 'left';
+  else if (band.col === 18) originX = 'right';
+  else if (band.col <= 3) originX = '30%';
+  else if (band.col >= 16) originX = '70%';
+
+  if (band.row === 1) originY = 'top';
+  else if (band.row >= 9) originY = 'bottom';
 
   return (
     <div
@@ -86,7 +96,7 @@ export function MetalCell({ band, baseScale = 1, animationDelay = 0, onClick, ho
           transform: `scale(${dynamicScale})`,
           transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease-out, background-color 0.2s ease-out',
           backgroundColor: isHovered ? 'rgba(0, 0, 0, 0.95)' : undefined,
-          transformOrigin: 'center center',
+          transformOrigin: `${originX} ${originY}`,
         } as React.CSSProperties}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
