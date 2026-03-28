@@ -104,18 +104,18 @@ export const MetalCell = memo(function MetalCell({
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
-        <div className="flex flex-col h-full min-h-[100px] md:min-h-[50px] justify-between">
+        <div className="flex flex-col h-full min-h-[100px] md:min-h-[70px] justify-between">
           <div>
             {/* Symbol */}
             <span
-              className="text-base md:text-sm font-bold leading-tight"
+              className="text-base md:text-lg font-bold leading-tight"
               style={{ color: categoryColor }}
             >
               {band.symbol}
             </span>
 
             {/* Name */}
-            <span className="text-[11px] md:text-[10px] text-gray-700 dark:text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-normal block">
+            <span className="text-[11px] md:text-[12px] text-gray-700 dark:text-gray-300 leading-tight truncate mt-0.5 md:mt-0 font-medium md:font-semibold block">
               {band.name}
             </span>
           </div>
