@@ -6,7 +6,7 @@ interface Bolt {
   alpha: number;
 }
 
-export const LightningCanvas = () => {
+export const LightningCanvas = ({ onStrike }: { onStrike?: () => void }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boltsRef = useRef<Bolt[]>([]);
   const flashRef = useRef(0);
@@ -28,37 +28,62 @@ export const LightningCanvas = () => {
       const path = [{ x, y }];
       let curX = x;
       let curY = y;
-      const segments = 8 + Math.random() * 10;
+      
+      // More segments for detailed branching
+      const segments = 15 + Math.random() * 10;
       const segLen = length / segments;
 
       for (let i = 0; i < segments; i++) {
-        curX += Math.sin(angle + (Math.random() - 0.5) * 0.7) * segLen;
-        curY += Math.cos(angle + (Math.random() - 0.5) * 0.7) * segLen;
+        // Multi-frequency jitter for natural look
+        const jitter = (Math.random() - 0.5) * 0.8 + (Math.random() - 0.5) * 0.3;
+        curX += Math.sin(angle + jitter) * segLen;
+        curY += Math.cos(angle + jitter) * segLen;
         path.push({ x: curX, y: curY });
       }
 
       const branches: Bolt[] = [];
-      if (depth < 2 && Math.random() > 0.7 && length > 100) {
-        branches.push(createBolt(curX, curY, angle + (Math.random() - 0.5) * 1.5, length * 0.5, depth + 1));
+      // Higher chance of branching at top, decreasing with depth
+      if (depth < 4 && Math.random() > 0.6) {
+        const branchAngle = angle + (Math.random() - 0.5) * 1.6;
+        const branchLen = length * (0.3 + Math.random() * 0.4);
+        branches.push(createBolt(curX, curY, branchAngle, branchLen, depth + 1));
       }
 
       return { path, branches, alpha: 1 };
     };
 
-    const drawBolt = (bolt: Bolt, currentAlpha: number) => {
+    const drawBoltPath = (bolt: Bolt, currentAlpha: number, width: number, blur: number, color: string) => {
       if (!ctx) return;
       ctx.beginPath();
       ctx.moveTo(bolt.path[0].x, bolt.path[0].y);
       for (let i = 1; i < bolt.path.length; i++) {
         ctx.lineTo(bolt.path[i].x, bolt.path[i].y);
       }
-      ctx.strokeStyle = `rgba(180, 220, 255, ${currentAlpha * bolt.alpha})`;
-      ctx.lineWidth = Math.max(0.5, 2 * bolt.alpha);
-      ctx.shadowBlur = Math.max(2, 10 * bolt.alpha);
-      ctx.shadowColor = 'rgba(0, 150, 255, 0.5)';
+      
+      ctx.shadowBlur = blur;
+      ctx.shadowColor = color;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       ctx.stroke();
 
-      bolt.branches.forEach(b => drawBolt(b, currentAlpha * bolt.alpha));
+      bolt.branches.forEach(b => drawBoltPath(b, currentAlpha, width * 0.7, blur * 0.7, color));
+    };
+
+    const renderStrike = (bolt: Bolt) => {
+      // Pass 1: Outer wide afterglow (lingering)
+      // We use bolt.alpha directly here
+      drawBoltPath(bolt, bolt.alpha, 12 * Math.pow(bolt.alpha, 0.5), 50 * bolt.alpha, `rgba(110, 160, 255, ${bolt.alpha * 0.15})`);
+      
+      // Pass 2: Inner blue aura
+      drawBoltPath(bolt, bolt.alpha, 4 * bolt.alpha, 15 * bolt.alpha, `rgba(160, 210, 255, ${bolt.alpha * 0.4})`);
+      
+      // Pass 3: Bright white core (dies fast)
+      const coreAlpha = Math.pow(bolt.alpha, 2.5); 
+      if (coreAlpha > 0.05) {
+        drawBoltPath(bolt, coreAlpha, 2 * coreAlpha, 4 * coreAlpha, `rgba(255, 255, 255, ${coreAlpha})`);
+      }
     };
 
     let lastStrike = -2000;
@@ -66,27 +91,34 @@ export const LightningCanvas = () => {
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Flash effect
+      // Flash effect (more intense but shorter)
       if (flashRef.current > 0) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${flashRef.current * 0.15})`;
+        ctx.fillStyle = `rgba(210, 235, 255, ${flashRef.current * 0.18})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        flashRef.current *= 0.88;
+        flashRef.current *= 0.82;
         if (flashRef.current < 0.01) flashRef.current = 0;
       }
 
-      // Create new strike (randomly 3-10 seconds)
-      if (time - lastStrike > 3000 + Math.random() * 7000) {
+      // Create new strike (randomly 5-15 seconds)
+      if (time - lastStrike > 5000 + Math.random() * 10000) {
         const startX = Math.random() * canvas.width;
-        boltsRef.current.push(createBolt(startX, 0, 0, canvas.height * 0.85));
+        // Sometimes double strikes for realism
+        const count = Math.random() > 0.85 ? 2 : 1;
+        for(let i=0; i<count; i++) {
+          const xOff = (Math.random() - 0.5) * 150;
+          boltsRef.current.push(createBolt(startX + xOff, 0, 0, canvas.height * (0.7 + Math.random() * 0.3)));
+        }
         flashRef.current = 1;
         lastStrike = time;
+        if (onStrike) onStrike();
       }
 
       // Update and draw bolts
       boltsRef.current = boltsRef.current.filter(bolt => {
-        bolt.alpha *= 0.86;
+        // Slow down the alpha decay to allow the afterglow to linger
+        bolt.alpha *= 0.94;
         if (bolt.alpha > 0.01) {
-          drawBolt(bolt, 1);
+          renderStrike(bolt);
           return true;
         }
         return false;

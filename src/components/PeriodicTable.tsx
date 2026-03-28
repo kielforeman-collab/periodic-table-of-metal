@@ -161,9 +161,15 @@ export function PeriodicTable() {
 
   const handleCellClick = isEditMode ? setEditingBand : setSelectedBand;
 
+  const [isShaking, setIsShaking] = useState(false);
+  const triggerShake = useCallback(() => {
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 200);
+  }, []);
+
   return (
-    <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-3 bg-gray-50 dark:bg-[#0D0D0D] min-h-screen text-gray-900 dark:text-gray-200 transition-colors duration-300">
-      <LightningCanvas />
+    <div className={`w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-3 bg-gray-50 dark:bg-[#0D0D0D] min-h-screen text-gray-900 dark:text-gray-200 transition-colors duration-300 ${isShaking ? 'animate-lightning-shake' : ''}`}>
+      <LightningCanvas onStrike={triggerShake} />
       {/* Sidebar Navigation */}
       <div 
         id="sidebar-menu"
@@ -309,6 +315,7 @@ export function PeriodicTable() {
         )}
 
         {/* Render all band cells — uses .map index instead of mutable animationIndex */}
+
         {localBands.map((band, index) => (
           <MetalCell
             key={`${band.symbol}-${band.row}-${band.col}`}
