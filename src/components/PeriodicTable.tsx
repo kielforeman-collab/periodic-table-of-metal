@@ -14,9 +14,8 @@ function computeScale(containerWidth: number, gridHeight: number): number {
     scale = containerWidth / targetWidth;
   }
   // Height constraint for mobile landscape / portrait
-  // We subtract space for top/bottom padding and footer items (approx 60-80px total)
   const headerOffset = containerWidth < 768 ? 80 : 70; 
-  const availableHeight = window.innerHeight - headerOffset;
+  const availableHeight = window.innerHeight - headerOffset - 4; // Added 4px safety buffer to prevent flickering loops
   if (availableHeight > 100 && gridHeight * scale > availableHeight) {
     const heightScale = availableHeight / gridHeight;
     scale = Math.min(scale, Math.max(0.2, heightScale));
@@ -231,7 +230,7 @@ export function PeriodicTable() {
       {/* Main Grid Wrapper - Responsive Scaling */}
       <div
         ref={wrapperRef}
-        className="w-full relative flex justify-center mx-auto transition-all duration-500 ease-out"
+        className="w-full relative flex justify-center mx-auto"
         style={{
           maxWidth: '2200px', // Increased from 1800px
           height: `${gridHeight * scale}px`,
