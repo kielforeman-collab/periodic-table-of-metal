@@ -3,7 +3,7 @@ import { MetalCell, CategoryLabel } from './MetalCell';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { MetalDetailsModal } from './MetalDetailsModal';
 import { BandEditorForm } from './BandEditorForm';
-import { Plus, Download, Edit3, Check, Menu, Moon, Sun, X } from 'lucide-react';
+import { Plus, Download, Edit3, Check, Menu, Moon, Sun, X, Zap } from 'lucide-react';
 import { LightningCanvas } from './LightningCanvas';
 import type { Band } from '@/data/bands';
 
@@ -29,6 +29,7 @@ export function PeriodicTable() {
   const [selectedBand, setSelectedBand] = useState<Band | null>(null);
   const [editingBand, setEditingBand] = useState<Band | Partial<Band> | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [lightningEnabled, setLightningEnabled] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [hoveredPos, setHoveredPos] = useState<{ row: number; col: number } | null>(null);
 
@@ -169,7 +170,7 @@ export function PeriodicTable() {
 
   return (
     <div className={`w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-3 bg-gray-50 dark:bg-[#0D0D0D] min-h-screen text-gray-900 dark:text-gray-200 transition-colors duration-300 ${isShaking ? 'animate-lightning-shake' : ''}`}>
-      <LightningCanvas onStrike={triggerShake} />
+      <LightningCanvas onStrike={triggerShake} enabled={lightningEnabled} />
       {/* Sidebar Navigation */}
       <div 
         id="sidebar-menu"
@@ -207,6 +208,18 @@ export function PeriodicTable() {
             >
               {isEditMode ? <Check size={18} /> : <Edit3 size={18} />}
               {isEditMode ? 'Finish Editing' : 'Enter Edit Mode'}
+            </button>
+
+            <button
+              onClick={() => setLightningEnabled(prev => !prev)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-sm font-medium ${
+                lightningEnabled
+                  ? 'bg-yellow-600/10 border-yellow-500/30 text-yellow-400 hover:bg-yellow-600/20 dark:bg-yellow-600/10 dark:border-yellow-500/30 dark:text-yellow-400'
+                  : 'border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/50 hover:bg-gray-100 dark:hover:bg-white/10'
+              }`}
+            >
+              <Zap size={18} />
+              {lightningEnabled ? 'Disable Lightning' : 'Enable Lightning'}
             </button>
 
             {isEditMode && (

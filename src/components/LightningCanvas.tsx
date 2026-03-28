@@ -6,7 +6,7 @@ interface Bolt {
   alpha: number;
 }
 
-export const LightningCanvas = ({ onStrike }: { onStrike?: () => void }) => {
+export const LightningCanvas = ({ onStrike, enabled = true }: { onStrike?: () => void; enabled?: boolean }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boltsRef = useRef<Bolt[]>([]);
   const flashRef = useRef(0);
@@ -74,21 +74,25 @@ export const LightningCanvas = ({ onStrike }: { onStrike?: () => void }) => {
     const renderStrike = (bolt: Bolt) => {
       // Pass 1: Outer wide afterglow (lingering)
       // We use bolt.alpha directly here
-      drawBoltPath(bolt, bolt.alpha, 12 * Math.pow(bolt.alpha, 0.5), 50 * bolt.alpha, `rgba(110, 160, 255, ${bolt.alpha * 0.15})`);
+      drawBoltPath(bolt, bolt.alpha, 20 * Math.pow(bolt.alpha, 0.5), 80 * bolt.alpha, `rgba(110, 160, 255, ${bolt.alpha * 0.15})`);
       
       // Pass 2: Inner blue aura
-      drawBoltPath(bolt, bolt.alpha, 4 * bolt.alpha, 15 * bolt.alpha, `rgba(160, 210, 255, ${bolt.alpha * 0.4})`);
+      drawBoltPath(bolt, bolt.alpha, 8 * bolt.alpha, 30 * bolt.alpha, `rgba(160, 210, 255, ${bolt.alpha * 0.4})`);
       
       // Pass 3: Bright white core (dies fast)
       const coreAlpha = Math.pow(bolt.alpha, 2.5); 
       if (coreAlpha > 0.05) {
-        drawBoltPath(bolt, coreAlpha, 2 * coreAlpha, 4 * coreAlpha, `rgba(255, 255, 255, ${coreAlpha})`);
+        drawBoltPath(bolt, coreAlpha, 4 * coreAlpha, 8 * coreAlpha, `rgba(255, 255, 255, ${coreAlpha})`);
       }
     };
 
     let lastStrike = -2000;
     const animate = (time: number) => {
       if (!ctx) return;
+      if (!enabled) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        return;
+      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Flash effect (more intense but shorter)
@@ -99,11 +103,11 @@ export const LightningCanvas = ({ onStrike }: { onStrike?: () => void }) => {
         if (flashRef.current < 0.01) flashRef.current = 0;
       }
 
-      // Create new strike (randomly 5-15 seconds)
-      if (time - lastStrike > 5000 + Math.random() * 10000) {
+      // Create new strike (randomly 1.5-5.5 seconds)
+      if (time - lastStrike > 1500 + Math.random() * 4000) {
         const startX = Math.random() * canvas.width;
         // Sometimes double strikes for realism
-        const count = Math.random() > 0.85 ? 2 : 1;
+        const count = Math.random() > 0.75 ? 2 : 1;
         for(let i=0; i<count; i++) {
           const xOff = (Math.random() - 0.5) * 150;
           boltsRef.current.push(createBolt(startX + xOff, 0, 0, canvas.height * (0.7 + Math.random() * 0.3)));
@@ -132,7 +136,7 @@ export const LightningCanvas = ({ onStrike }: { onStrike?: () => void }) => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [enabled]);
 
   return (
     <canvas 
