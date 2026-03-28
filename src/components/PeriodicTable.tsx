@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { MetalDetailsModal } from './MetalDetailsModal';
 import { BandEditorForm } from './BandEditorForm';
 import { Plus, Download, Edit3, Check, Menu, Moon, Sun, X } from 'lucide-react';
+import { LightningCanvas } from './LightningCanvas';
 import type { Band } from '@/data/bands';
 
 // Extracted: single source of truth for responsive scale calculation
@@ -162,6 +163,7 @@ export function PeriodicTable() {
 
   return (
     <div className="w-full h-full overflow-y-auto overflow-x-hidden p-2 md:p-3 bg-gray-50 dark:bg-[#0D0D0D] min-h-screen text-gray-900 dark:text-gray-200 transition-colors duration-300">
+      <LightningCanvas />
       {/* Sidebar Navigation */}
       <div 
         id="sidebar-menu"
